@@ -1,40 +1,65 @@
 import { useState, useEffect } from 'react';
+import axios from 'axios';
 
 const UseTaskManager = () => {
   const [tasks, setTasks] = useState([]);
-  const [newTask, setNewTask] = useState ({ name: '', completed: false });
+  const [newTask, setNewTask] = useState({ name: '', completed: false });
 
   useEffect(() => {
-    const storedTasks = JSON.parse(localStorage.getItem('tasks')) || [];
-    if (storedTasks.length > 0) {
-      setTasks(storedTasks);
-    }
-  }, []); 
+    const fetchTasks = async () => {
+      try {
+        const response = await axios.get('/tasks');
+        setTasks(response.data);
+      } catch (error) {
+        console.error('Error fetching tasks:', error);
+      }
+    };
+
+    fetchTasks();
+  }, []);
 
   useEffect(() => {
-    localStorage.setItem('tasks', JSON.stringify(tasks));
+    const updateTasks = async () => {
+      try {
+        await axios.put('/tasks', { tasks });
+      } catch (error) {
+        console.error('Error updating tasks:', error);
+      }
+    };
+
+    updateTasks();
   }, [tasks]);
 
-  const addTask = () => {
-    if (newTask.name.trim() !== '') {
-      setTasks([
-        ...tasks,
-        { id: tasks.length + 1, name: newTask.name, completed: false },
-      ]);
+  const addTask = async () => {
+    try {
+      const response = await axios.post('/tasks', newTask);
+      setTasks([...tasks, response.data]);
       setNewTask({ name: '', completed: false });
+    } catch (error) {
+      console.error('Error adding task:', error);
     }
   };
 
-  const editTask = (taskId, newName, newCompleted) => {
-    const updatedTasks = tasks.map((task) =>
-      task.id === taskId ? { ...task, name: newName, completed: newCompleted } : task
-    );
-    setTasks(updatedTasks);
+  const editTask = async (taskId, newName, newCompleted) => {
+    try {
+      await axios.put(`/tasks/${taskId}`, { name: newName, completed: newCompleted });
+      const updatedTasks = tasks.map((task) =>
+        task.id === taskId ? { ...task, name: newName, completed: newCompleted } : task
+      );
+      setTasks(updatedTasks);
+    } catch (error) {
+      console.error('Error editing task:', error);
+    }
   };
 
-  const deleteTask = (taskId) => {
-    const updatedTasks = tasks.filter((task) => task.id !== taskId);
-    setTasks(updatedTasks);
+  const deleteTask = async (taskId) => {
+    try {
+      await axios.delete(`/tasks/${taskId}`);
+      const updatedTasks = tasks.filter((task) => task.id !== taskId);
+      setTasks(updatedTasks);
+    } catch (error) {
+      console.error('Error deleting task:', error);
+    }
   };
 
   return { tasks, newTask, setNewTask, addTask, editTask, deleteTask };
