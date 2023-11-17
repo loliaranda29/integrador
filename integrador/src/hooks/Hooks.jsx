@@ -1,14 +1,15 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import connectDB from '../services/mongo';
 
-const UseTaskManager = () => {
+const useTaskManager = () => {
   const [tasks, setTasks] = useState([]);
   const [newTask, setNewTask] = useState({ name: '', completed: false });
 
   useEffect(() => {
     const fetchTasks = async () => {
       try {
-        const response = await axios.get('/tasks');
+        const response = await axios.get('http://localhost:5000/tasks'); // Cambia la URL a tu endpoint real
         setTasks(response.data);
       } catch (error) {
         console.error('Error fetching tasks:', error);
@@ -21,7 +22,7 @@ const UseTaskManager = () => {
   useEffect(() => {
     const updateTasks = async () => {
       try {
-        await axios.put('/tasks', { tasks });
+        await axios.put('http://localhost:5000/tasks', { tasks });
       } catch (error) {
         console.error('Error updating tasks:', error);
       }
@@ -32,7 +33,7 @@ const UseTaskManager = () => {
 
   const addTask = async () => {
     try {
-      const response = await axios.post('/tasks', newTask);
+      const response = await axios.post('http://localhost:5000/tasks', newTask);
       setTasks([...tasks, response.data]);
       setNewTask({ name: '', completed: false });
     } catch (error) {
@@ -42,7 +43,7 @@ const UseTaskManager = () => {
 
   const editTask = async (taskId, newName, newCompleted) => {
     try {
-      await axios.put(`/tasks/${taskId}`, { name: newName, completed: newCompleted });
+      await axios.put(`http://localhost:5000/tasks/${taskId}`, { name: newName, completed: newCompleted });
       const updatedTasks = tasks.map((task) =>
         task.id === taskId ? { ...task, name: newName, completed: newCompleted } : task
       );
@@ -54,7 +55,7 @@ const UseTaskManager = () => {
 
   const deleteTask = async (taskId) => {
     try {
-      await axios.delete(`/tasks/${taskId}`);
+      await axios.delete(`http://localhost:5000/tasks/${taskId}`);
       const updatedTasks = tasks.filter((task) => task.id !== taskId);
       setTasks(updatedTasks);
     } catch (error) {
@@ -65,4 +66,4 @@ const UseTaskManager = () => {
   return { tasks, newTask, setNewTask, addTask, editTask, deleteTask };
 };
 
-export default UseTaskManager;
+export default useTaskManager;

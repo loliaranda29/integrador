@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import './App.css';
 import TaskList from './components/TaskList';
 import Header from './components/Header';
+import axios from 'axios';
 
 const App = () => {
   const [tasks, setTasks] = useState([]);
@@ -15,7 +16,7 @@ const App = () => {
 
   const fetchTasks = async () => {
     try {
-      const response = await axios.get('/tasks');
+      const response = await axios.get('http://localhost:5000/tasks'); // Cambia la URL a tu endpoint real
       setTasks(response.data);
     } catch (error) {
       console.error('Error fetching tasks:', error);
@@ -24,7 +25,7 @@ const App = () => {
 
   const addTask = async () => {
     try {
-      const response = await axios.post('/tasks', newTask);
+      const response = await axios.post('http://localhost:5000/tasks', newTask);
       setTasks([...tasks, response.data]);
       setNewTask({ name: '', completed: false });
     } catch (error) {
@@ -34,7 +35,7 @@ const App = () => {
 
   const editTask = async (taskId, newName, newCompleted) => {
     try {
-      await axios.put(`/tasks/${taskId}`, { name: newName, completed: newCompleted });
+      await axios.put(`http://localhost:5000/tasks/${taskId}`, { name: newName, completed: newCompleted });
       const updatedTasks = tasks.map((task) =>
         task.id === taskId ? { ...task, name: newName, completed: newCompleted } : task
       );
@@ -46,7 +47,7 @@ const App = () => {
 
   const deleteTask = async (taskId) => {
     try {
-      await axios.delete(`/tasks/${taskId}`);
+      await axios.delete(`http://localhost:5000/tasks/${taskId}`);
       const updatedTasks = tasks.filter((task) => task.id !== taskId);
       setTasks(updatedTasks);
     } catch (error) {
@@ -54,16 +55,15 @@ const App = () => {
     }
   };
 
-  
   const handleTaskSubmission = (event) => {
     event.preventDefault();
     addTask();
   };
-  
+
   const handleInputChange = (e) => {
     setNewTask({ ...newTask, name: e.target.value });
   };
-  
+
   return (
     <ChakraProvider theme={theme}>
       <div className="App">
@@ -89,6 +89,6 @@ const App = () => {
       </div>
     </ChakraProvider>
   );
-  };
+};
 
 export default App;
