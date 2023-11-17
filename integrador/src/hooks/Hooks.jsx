@@ -1,43 +1,43 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
-import dotenv from 'dotenv';
 
-dotenv.config(); // Carga las variables de entorno desde .env
-
-const useTasks = () => {
+const UseTaskManager = () => {
   const [tasks, setTasks] = useState([]);
+  const [newTask, setNewTask] = useState ({ name: '', completed: false });
 
   useEffect(() => {
-    const fetchTasks = async () => {
-      try {
-        const response = await axios.get(`${process.env.REACT_APP_MONGODB_URI}/tasks`);
-        setTasks(response.data);
-      } catch (error) {
-        console.error('Error fetching tasks: ', error);
-      }
-    };
+    const storedTasks = JSON.parse(localStorage.getItem('tasks')) || [];
+    if (storedTasks.length > 0) {
+      setTasks(storedTasks);
+    }
+  }, []); 
 
-    fetchTasks();
-  }, []);
+  useEffect(() => {
+    localStorage.setItem('tasks', JSON.stringify(tasks));
+  }, [tasks]);
 
-  const handleToggle = async (taskId, completed) => {
-    const updatedTasks = tasks.map((task) =>
-      task._id === taskId ? { ...task, completed } : task
-    );
-    setTasks(updatedTasks);
-
-    try {
-      await axios.put(`${process.env.REACT_APP_MONGODB_URI}/tasks/${taskId}`, { completed });
-    } catch (error) {
-      console.error('Error updating task: ', error);
+  const addTask = () => {
+    if (newTask.name.trim() !== '') {
+      setTasks([
+        ...tasks,
+        { id: tasks.length + 1, name: newTask.name, completed: false },
+      ]);
+      setNewTask({ name: '', completed: false });
     }
   };
 
-  const totalTasks = tasks.length;
-  const completedTasks = tasks.filter((task) => task.completed).length;
-  const pendingTasks = totalTasks - completedTasks;
+  const editTask = (taskId, newName, newCompleted) => {
+    const updatedTasks = tasks.map((task) =>
+      task.id === taskId ? { ...task, name: newName, completed: newCompleted } : task
+    );
+    setTasks(updatedTasks);
+  };
 
-  return { tasks, handleToggle, totalTasks, completedTasks, pendingTasks };
+  const deleteTask = (taskId) => {
+    const updatedTasks = tasks.filter((task) => task.id !== taskId);
+    setTasks(updatedTasks);
+  };
+
+  return { tasks, newTask, setNewTask, addTask, editTask, deleteTask };
 };
 
-export default useTasks;
+export default UseTaskManager;
